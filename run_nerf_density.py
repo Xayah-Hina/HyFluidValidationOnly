@@ -414,6 +414,7 @@ def config_parser():
     parser.add_argument("--tv-loss-weight", type=float, default=1e-6,
                         help='learning rate')
 
+    parser.add_argument("--export_density_only", action='store_true', help='export density only')
     return parser
 
 
@@ -489,6 +490,29 @@ def train():
                 render_path(test_view_poses, hwf, K, render_kwargs_test, time_steps=test_timesteps, gt_imgs=images_test,
                             savedir=testsavedir)
             return
+
+    if args.export_density_only:
+        # import houdini
+        print('EXPORT DENSITY ONLY')
+        with torch.no_grad():
+            rx=128
+            ry=192
+            rz=128
+            xs, ys, zs = torch.meshgrid([torch.linspace(0, 1, rx), torch.linspace(0, 1, ry), torch.linspace(0, 1, rz)], indexing='ij')
+            coord_3d_sim = torch.stack([xs, ys, zs], dim=-1)  # [X, Y, Z, 3]
+            coord_3d_world = bbox_model.sim2world(coord_3d_sim)  # [X, Y, Z, 3]
+
+            # initialize density field
+            N_timesteps = 120
+            time_steps = torch.arange(N_timesteps) / (N_timesteps - 1)
+            time_step = torch.ones_like(coord_3d_world[..., :1]) * time_steps[0]
+            coord_4d_world = torch.cat([coord_3d_world, time_step], dim=-1)  # [X, Y, Z, 4]
+
+            for i in range(120):
+                coord_4d_world[..., 3] = time_steps[i]
+                den = batchify_query(coord_4d_world, render_kwargs_train['network_query_fn'])
+                np.save(os.path.join("export", 'den_{:03d}.npy'.format(i)), den.detach().cpu().numpy())
+                print(den.shape)
 
 
 if __name__ == '__main__':
