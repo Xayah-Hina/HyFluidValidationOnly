@@ -500,6 +500,8 @@ def train():
             xs, ys, zs = torch.meshgrid([torch.linspace(0, 1, rx), torch.linspace(0, 1, ry), torch.linspace(0, 1, rz)], indexing='ij')
             coord_3d_sim = torch.stack([xs, ys, zs], dim=-1)  # [X, Y, Z, 3]
             coord_3d_world = bbox_model.sim2world(coord_3d_sim)  # [X, Y, Z, 3]
+            bbox_mask = bbox_model.insideMask(coord_3d_world[..., :3].reshape(-1, 3), to_float=False)
+            bbox_mask = bbox_mask.reshape(rx, ry, rz)
 
             # initialize density field
             N_timesteps = 120
@@ -511,6 +513,7 @@ def train():
             for i in range(120):
                 coord_4d_world[..., 3] = time_steps[i]
                 den = batchify_query(coord_4d_world, render_kwargs_train['network_query_fn'])
+                den[~bbox_mask] *= 0.0
                 np.save(os.path.join("export", 'den_{:03d}.npy'.format(i+1)), den.detach().cpu().numpy())
 
 
