@@ -492,7 +492,7 @@ def train():
             return
 
     if args.export_density_only:
-        # import houdini
+        import houdini
         print('EXPORT DENSITY ONLY')
         with torch.no_grad():
             rx=128
@@ -511,8 +511,15 @@ def train():
             for i in range(120):
                 coord_4d_world[..., 3] = time_steps[i]
                 den = batchify_query(coord_4d_world, render_kwargs_train['network_query_fn'])
-                np.save(os.path.join("export", 'den_{:03d}.npy'.format(i)), den.detach().cpu().numpy())
-                print(den.shape)
+                np.save(os.path.join("export", 'den_{:03d}.npy'.format(i+1)), den.detach().cpu().numpy())
+
+                houdini.export_density_field(
+                    den=den,
+                    save_path="export",
+                    surname=f"density_{i+1:03d}",
+                    bbox=(0.0, 0.0, 0.0, bbox_model.s_scale[0].item(), bbox_model.s_scale[1].item(),
+                          bbox_model.s_scale[2].item()),
+                )
 
 
 if __name__ == '__main__':
