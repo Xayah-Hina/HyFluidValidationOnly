@@ -46,3 +46,10 @@ if __name__ == "__main__":
             surname=f"density_{i+1:03d}",
             bbox=(0.0, 0.0, 0.0, 0.4909, 0.7363, 0.4909),
         )
+        # vel = np.load(f"export/vel_{i+1:03d}.npy")
+        # export_velocity_field(
+        #     vel=vel,
+        #     save_path="export",
+        #     surname=f"velocity_{i+1:03d}",
+        #     bbox=(0.0, 0.0, 0.0, 0.4909, 0.7363, 0.4909),
+        # )
