@@ -3,7 +3,7 @@ import numpy as np
 import pdb
 import torch
 import vtk
-from vtk.util import numpy_support
+from vtkmodules.util import numpy_support
 
 from ray_utils import get_rays, get_ray_directions, get_ndc_rays
 import os, imageio, json
